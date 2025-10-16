@@ -151,6 +151,13 @@ useEffect(() => {
   const temReserva = (date: Date) =>
     reservas.some(r => r.dataReserva === date.toISOString().split("T")[0]);
 
+
+  const [mesAtual, setMesAtual] = useState(new Date().getMonth());
+
+
+
+  
+
   return (
     <div className="app-container">
     
@@ -181,21 +188,41 @@ useEffect(() => {
       </div>
 
 <div className="calendario-container">
-  <Calendar
-    onClickDay={aoClicarNoDia}
-    className="react-calendar"
-    tileClassName={({ date }) =>
-      temReserva(date) ? "dia-reservado" : "dia-livre"
+<Calendar
+  onClickDay={aoClicarNoDia}
+  className="react-calendar"
+  onActiveStartDateChange={({ activeStartDate }) => {
+    if (activeStartDate) {
+      setMesAtual(activeStartDate.getMonth());
     }
-    tileContent={({ date }) => {
-      const reserva = reservas.find(
-        (r) => r.dataReserva === date.toISOString().split("T")[0]
-      );
-      return reserva ? (
-        <div className="nome-cliente">{reserva.nomeCliente}</div>
-      ) : null;
-    }}
-  />
+  }}
+tileClassName={({ date, view }) => {
+  const dateStr = date.toISOString().split("T")[0];
+
+  // Se tem reserva E é do mês atual
+  if (temReserva(date) && date.getMonth() === mesAtual) return "dia-reservado";
+
+  // Dias que pertencem a outros meses
+  if (view === "month" && date.getMonth() !== mesAtual) return "dia-vizinho";
+
+  return "dia-livre";
+}}
+
+tileContent={({ date, view }) => {
+  const reserva = reservas.find(
+    (r) => r.dataReserva === date.toISOString().split("T")[0]
+  );
+
+  // Só mostrar o nome se a reserva for do mês atual
+  if (reserva && date.getMonth() === mesAtual && view === "month") {
+    return <div className="nome-cliente">{reserva.nomeCliente}</div>;
+  }
+
+  return null;
+}}
+
+/>
+
 </div>
 
 
